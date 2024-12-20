@@ -1,3 +1,8 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using CycleTrackingProject.Data;
+using DbContext = CycleTrackingProject.Data.DbContext;
+using CycleTrackingProject.Areas.Identity.Data;
 namespace CycleTrackingProject
 {
     public class Program
@@ -5,6 +10,16 @@ namespace CycleTrackingProject
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var connectionString = builder.Configuration.GetConnectionString("DbContextConnection") ?? throw new InvalidOperationException("Connection string 'DbContextConnection' not found.");
+
+            // Lägg till DbContext
+            builder.Services.AddDbContext<DbContext>(options =>
+                options.UseSqlServer(connectionString));
+
+            // Lägg till Identity med DefaultUI
+            builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddEntityFrameworkStores<DbContext>()
+                .AddDefaultUI();  // Lägg till denna rad för att få med UI-sidorna
 
             // Add services to the container.
             builder.Services.AddRazorPages();
@@ -24,6 +39,7 @@ namespace CycleTrackingProject
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapRazorPages();
